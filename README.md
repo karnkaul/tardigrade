@@ -19,7 +19,9 @@
     1. Add to build tree:
         1. Use CMake FetchContent to obtain `tardigrade`, or clone repository into local directory, or add it as a git submodule
         1. Add into existing CMake build tree via  `FetchContent_MakeAvailable()` / `add_subdirectory()`
-    1. Install package: WIP
+    1. Install package:
+        1. Build and install Debug and Release configurations via CMake
+        1. Use `find_package(tardigrade CONFIG)` to import into build tree
     1. Manual:
         1. Copy `include/tardigrade` to `<project_include_path>`
         1. Add files in `src` to build or place tardigrade static library binary in `<project_library_paths>`
