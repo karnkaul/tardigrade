@@ -1,0 +1,5 @@
+#include <string_view>
+
+namespace tg {
+inline constexpr auto version_v = std::string_view{"@PROJECT_VERSION@"};
+}

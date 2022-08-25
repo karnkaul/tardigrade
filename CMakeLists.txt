@@ -13,10 +13,12 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+set(build_version 0.9.0)
+
 include(CheckPIESupported)
 check_pie_supported()
 
-project(tardigrade)
+project(tardigrade VERSION ${build_version})
 
 set(is_root_project OFF) # indicate if this is the top-level project
 
@@ -24,6 +26,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(is_root_project ON)
   message(STATUS "${PROJECT_NAME} is top level")
 endif()
+
+option(TG_INSTALL ${is_root_project})
 
 add_library(${PROJECT_NAME})
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
@@ -48,6 +52,7 @@ target_sources(${PROJECT_NAME} PRIVATE
   include/tardigrade/render_target.hpp
   include/tardigrade/scene.hpp
   include/tardigrade/services.hpp
+  include/tardigrade/tardigrade.hpp
   include/tardigrade/tick_attachment.hpp
   include/tardigrade/to_string.hpp
 
@@ -60,5 +65,62 @@ target_sources(${PROJECT_NAME} PRIVATE
 if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR CMAKE_CXX_COMPILER_ID STREQUAL GNU)
   target_compile_options(${PROJECT_NAME} PRIVATE
     -Wall -Wextra -Wpedantic -Wconversion -Werror=return-type
+  )
+endif()
+
+configure_file(src/build_version.hpp.in "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/build_version.hpp" @ONLY)
+
+if(TG_INSTALL)
+  include(GNUInstallDirs)
+  include(CMakePackageConfigHelpers)
+
+  # install targets
+  install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+
+  # install headers from include
+  install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.hpp"
+  )
+
+  # install generated headers
+  install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.hpp"
+  )
+
+  # install and export targets
+  install(EXPORT ${PROJECT_NAME}-targets
+    FILE ${PROJECT_NAME}-targets.cmake
+    NAMESPACE ${PROJECT_NAME}::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+  )
+
+  # configure ${PROJECT_NAME}-config.cmake
+  configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+  )
+
+  # install ${PROJECT_NAME}-config.cmake
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+  )
+
+  # configure ${PROJECT_NAME}-config-version.cmake
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+    VERSION ${build_version}
+    COMPATIBILITY AnyNewerVersion
+  )
+
+  # install ${PROJECT_NAME}-config-version.cmake
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
   )
 endif()

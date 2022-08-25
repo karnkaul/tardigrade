@@ -10,6 +10,8 @@ class TypeId {
 		return get<std::remove_cvref_t<T>>();
 	}
 
+	TypeId() = default;
+
 	bool operator==(TypeId const&) const = default;
 
 	struct Hasher;
