@@ -5,11 +5,11 @@
 namespace tg {
 class RenderAttachment : public TickAttachment {
   public:
+	static constexpr auto tick_order_v = 100;
+
+	void setup() override { order = tick_order_v; }
 	virtual void render(RenderTarget const& target) const = 0;
 
-	int layer() const { return m_layer; }
-
-  protected:
-	int m_layer{};
+	int layer{};
 };
 } // namespace tg

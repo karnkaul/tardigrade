@@ -41,6 +41,12 @@ class Entity final {
 		return ret;
 	}
 
+	template <std::derived_from<Attachment> Type, typename... Args>
+	Ptr<Type> find_or_attach(Args&&... args) {
+		if (auto ret = find<Type>()) { return ret; }
+		return attach<Type>(std::forward<Args>(args)...);
+	}
+
 	template <std::derived_from<Attachment> Type>
 	bool contains() const {
 		return find<Type>() != nullptr;
@@ -64,6 +70,8 @@ class Entity final {
 	void fill_render_list(RenderList& out) const;
 
 	Ptr<Scene> scene() const;
+
+	bool sort_ticks{true};
 
   private:
 	enum SubType { eTick = 1 << 0, eRender = 1 << 1 };

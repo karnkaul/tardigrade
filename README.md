@@ -50,7 +50,7 @@ These classes form the basis of the framework:
 
 ### Entity
 
-Represents a unique object in a scene, supports attaching / detaching / querying for `Attachment`s - one instance per unique/concrete type. Cannot be derived from (is marked `final`). Sets the `Entity::Id` of owned attachments to its own. Provides APIs to manipulate attachments, toggle activity, set destroyed (removed from owning `Scene` after tick), obtain a pointer to the owning `Scene` (if any), etc.
+Represents a unique object in a scene, supports attaching / detaching / querying for `Attachment`s - one instance per unique/concrete type. Cannot be derived from (is marked `final`). Sets the `Entity::Id` of owned attachments to its own. Provides APIs to manipulate attachments, toggle activity, set destroyed (removed from owning `Scene` after tick), obtain a pointer to the owning `Scene` (if any), etc. Once an entity starts ticking, the list of its attachments is frozen. In other words, attachments attached in the midst of an entity's tick will not be ticked or rendered until the next frame.
 
 ### DeltaTime
 
@@ -62,11 +62,11 @@ Abstract base class for an arbitrary component to attach to an `Entity`. Exposes
 
 #### TickAttachment
 
-Abstract attachment that exposes `virtual void tick(DeltaTime) = 0`, called every frame by the owning `Entity`.
+Abstract attachment that exposes `virtual void tick(DeltaTime) = 0`, called every frame by the owning `Entity`. Also exposes a customizable `int order` for the owning entity to sort attachments before ticking them.
 
 #### RenderAttachment
 
-Abstract tick attachment that exposes `virtual void render(RenderTarget const&) const = 0`, called every frame by the owning `Entity`. Also exposes a customizable `int m_layer` for optional sorted drawing.
+Abstract tick attachment that exposes `virtual void render(RenderTarget const&) const = 0`, called every frame by the owning `Entity`. Also exposes a customizable `int layer` for the owning scene to sort attachments before drawing them. Sets `order = tick_order_v` (default `100`) in `setup()`: this enables all render attachments on an entity to be ticked after all its tick attachments, by default. (Don't forget to call `RenderAttachment::setup()` in overrides!)
 
 ### RenderTarget
 
@@ -74,7 +74,7 @@ Base class for custom render targets / frames. A const reference is passed to al
 
 ### Scene
 
-Pinned (non-movable, non-copiable) base class that represents a set of `Entity`s associated with their `Entity::Id`s. Sets the `Scene` pointer of owned entities to itself. Provides APIs to tick and render all of them, and a single `virtual void setup()`, called by `Director` on a scene being loaded.
+Pinned (non-movable, non-copiable) base class that represents a set of `Entity`s associated with their `Entity::Id`s. Sets the `Scene` pointer of owned entities to itself. Provides APIs to tick and render all of them, and a single `virtual void setup()`, called by `Director` on a scene being loaded. Once a scene starts ticking, the list of its entities is frozen. In other words, entities spawned in the midst of a scene's tick will not be ticked or rendered until the next frame.
 
 ### Director
 

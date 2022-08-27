@@ -6,6 +6,6 @@ namespace tg {
 class RenderAttachment;
 
 struct RenderList {
-	std::vector<Ptr<RenderAttachment const>> renderables{};
+	std::vector<Ptr<RenderAttachment const>> attachments{};
 };
 } // namespace tg
