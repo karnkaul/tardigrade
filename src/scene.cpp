@@ -36,11 +36,6 @@ std::size_t Scene::entity_count() const { return m_impl->entities.size(); }
 void Scene::clear_entities() { m_impl->entities.clear(); }
 
 void Scene::tick(DeltaTime dt) {
-	m_impl->tick_list.clear();
-	for (auto& [_, entity] : m_impl->entities) {
-		if (entity.active()) { m_impl->tick_list.push_back(&entity); }
-	}
-	for (auto* entity : m_impl->tick_list) { entity->tick(dt); }
 	for (auto it = m_impl->entities.begin(); it != m_impl->entities.end();) {
 		if (it->second.destroyed()) {
 			it = m_impl->entities.erase(it);
@@ -48,23 +43,26 @@ void Scene::tick(DeltaTime dt) {
 			++it;
 		}
 	}
+	m_impl->tick_list.clear();
+	for (auto& [_, entity] : m_impl->entities) {
+		if (entity.active()) { m_impl->tick_list.push_back(&entity); }
+	}
+	for (auto* entity : m_impl->tick_list) { entity->tick(dt); }
 }
 
 RenderList const& Scene::build_render_list() {
-	m_impl->render_list.renderables.clear();
-	for (auto const& [_, entity] : m_impl->entities) {
-		if (entity.active()) { entity.fill_render_list(m_impl->render_list); }
-	}
+	m_impl->render_list.attachments.clear();
+	for (auto const* entity : m_impl->tick_list) { entity->fill_render_list(m_impl->render_list); }
 	if (sort_renders) {
-		static constexpr auto comp = [](RenderAttachment const* a, RenderAttachment const* b) { return a->layer() < b->layer(); };
-		std::sort(m_impl->render_list.renderables.begin(), m_impl->render_list.renderables.end(), comp);
+		static constexpr auto comp = [](RenderAttachment const* a, RenderAttachment const* b) { return a->layer < b->layer; };
+		std::sort(m_impl->render_list.attachments.begin(), m_impl->render_list.attachments.end(), comp);
 	}
 	return m_impl->render_list;
 }
 
 void Scene::render(RenderTarget const& target) {
 	auto const list = build_render_list();
-	for (auto const* renderable : list.renderables) { renderable->render(target); }
+	for (auto const* renderable : list.attachments) { renderable->render(target); }
 }
 
 Ptr<Entity> Scene::spawn_impl() {
