@@ -86,7 +86,7 @@ Globally accessible typed non-owning service locator (stores one pointer per typ
 
 ## Example
 
-WIP
+See [example.cpp](example/example.cpp) for a concrete example using [vulkify](https://github.com/vulkify/vulkify).
 
 ## Misc
 

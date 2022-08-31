@@ -27,7 +27,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   message(STATUS "${PROJECT_NAME} is top level")
 endif()
 
-option(TG_INSTALL ${is_root_project})
+option(TG_BUILD_EXAMPLE "Build tardigrade example" ${is_root_project})
+option(TG_INSTALL "Install tardigrade" ${is_root_project})
 
 add_library(${PROJECT_NAME})
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
@@ -69,6 +70,10 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR CMAKE_CXX_COMPILER_ID STREQUAL GNU)
 endif()
 
 configure_file(src/build_version.hpp.in "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/build_version.hpp" @ONLY)
+
+if(TG_BUILD_EXAMPLE)
+  add_subdirectory(example)
+endif()
 
 if(TG_INSTALL)
   include(GNUInstallDirs)
